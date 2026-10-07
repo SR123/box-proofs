@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Box proofs</title>
+  <meta name="description" content="Build and check Fitch-style box proofs in propositional logic, with step-by-step guidance.">
+  <meta name="color-scheme" content="light dark">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='3' y='3' width='26' height='26' rx='6' fill='%232856A6'/%3E%3Crect x='9' y='9' width='14' height='14' rx='3' fill='none' stroke='%23fff' stroke-width='2.5'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="css/app.css">
+  <script>
+    // Apply saved conveniences before first paint (all optional).
+    (function () {
+      var d = document.documentElement;
+      var q = location.search;
+      var embed = /[?&]embed=(1|true|yes)/i.test(q);
+      var present = false;
+      try {
+        var t = localStorage.getItem('boxproofs.theme');
+        if (t === '"light"' || t === '"dark"' || t === 'light' || t === 'dark') d.dataset.theme = t.replace(/"/g, '');
+        present = localStorage.getItem('boxproofs.present') === 'true';
+      } catch (e) {}
+      if (/[?&]present=(1|true|yes)/i.test(q)) present = true;
+      if (/[?&]present=(0|false|no)/i.test(q)) present = false;
+      if (embed) d.classList.add('embed');
+      else if (present) d.classList.add('present');
+      if (!embed && (present || window.innerWidth <= 1100)) d.classList.add('drawer');
+    })();
+  </script>
+  <script type="module" src="js/app.js"></script>
+</head>
+<body>
+  <a class="skip" href="#proof-panel">Skip to the proof</a>
+
+  <header class="topbar">
+    <button class="icon-btn drawer-btn" id="drawer-btn" type="button" aria-controls="sidebar" aria-expanded="false">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+      <span>Exercises</span>
+    </button>
+    <div class="brand">
+      <a class="home-link" href="./" id="home-link" title="Back to the start page">
+        <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true"><rect x="3" y="3" width="26" height="26" rx="6"/><rect x="9" y="9" width="14" height="14" rx="3" class="inner"/></svg>
+        <span class="brand-text">
+          <h1>Box proofs</h1>
+          <span class="tagline">Natural deduction, one step at a time · ECS407U Logic and Discrete Structures</span>
+        </span>
+      </a>
+    </div>
+    <div class="top-actions">
+      <button class="btn ghost" id="check-btn" type="button" aria-haspopup="dialog">Check a proof</button>
+      <button class="btn ghost" id="present-btn" type="button" aria-pressed="false" title="Present (P): a larger proof for the projector, with the exercises in a drawer">Present</button>
+      <button class="icon-btn" id="theme-btn" type="button" aria-label="Colour theme: automatic" title="Colour theme"></button>
+      <button class="btn" id="help-btn" type="button" aria-haspopup="dialog">Help</button>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar" id="sidebar" aria-label="Exercises and your own sequent">
+      <div class="drawer-head">
+        <h2>Exercises</h2>
+        <button class="icon-btn" id="drawer-close" type="button" aria-label="Close the exercises"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+      </div>
+      <div class="sidebar-inner">
+        <section class="card own">
+          <h2 id="own-title">Your own sequent</h2>
+          <form id="own-form" autocomplete="off">
+            <label for="own-input" class="sr-only">Sequent</label>
+            <input id="own-input" class="own-input" type="text" spellcheck="false" autocapitalize="off" aria-describedby="own-preview own-error" placeholder="e.g. A → B, ¬B ⊢ ¬A">
+            <div class="palette" role="group" aria-label="Insert a symbol">
+              <button type="button" data-sym="→" aria-label="Insert implies">→</button>
+              <button type="button" data-sym="∧" aria-label="Insert and">∧</button>
+              <button type="button" data-sym="∨" aria-label="Insert or">∨</button>
+              <button type="button" data-sym="¬" aria-label="Insert not">¬</button>
+              <button type="button" data-sym="⊥" aria-label="Insert falsum">⊥</button>
+              <button type="button" data-sym="↔" aria-label="Insert if and only if">↔</button>
+              <button type="button" data-sym="⊢" aria-label="Insert turnstile">⊢</button>
+              <button type="button" data-sym="(" aria-label="Insert open bracket">(</button>
+              <button type="button" data-sym=")" aria-label="Insert close bracket">)</button>
+            </div>
+            <div class="preview" id="own-preview" aria-live="polite"></div>
+            <div class="parse-error" id="own-error" role="alert"></div>
+            <p class="hint-ascii">ASCII works too: <code>-&gt;</code> <code>&amp;</code> <code>|</code> <code>~</code> <code>_|_</code> <code>|-</code></p>
+            <button class="btn primary" id="own-start" type="submit">Start proving</button>
+          </form>
+        </section>
+        <nav class="library" id="library" aria-label="Exercise library"></nav>
+      </div>
+    </aside>
+    <div class="scrim" id="scrim" hidden></div>
+
+    <main class="main" id="main">
+      <section class="problem card" aria-labelledby="problem-title">
+        <div class="problem-head">
+          <div class="problem-meta">
+            <span class="game-chip" id="game-chip"></span>
+            <h2 id="problem-title">Exercise</h2>
+          </div>
+          <div class="problem-status" id="problem-status" aria-live="polite"></div>
+          <a class="embed-link" id="open-full" href="./" target="_blank" rel="noopener">Open in the full app ↗</a>
+        </div>
+        <div class="sequent" id="sequent" aria-live="polite"></div>
+        <div class="toolbar" role="toolbar" aria-label="Proof tools">
+          <div class="tool-group">
+            <button class="btn" id="undo-btn" type="button" title="Undo (Ctrl+Z)" aria-label="Undo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 14 4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg><span class="lbl">Undo</span></button>
+            <button class="btn" id="redo-btn" type="button" title="Redo (Ctrl+Shift+Z)" aria-label="Redo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 14 5-5-5-5"/><path d="M20 9H10a6 6 0 0 0 0 12h3"/></svg><span class="lbl">Redo</span></button>
+            <button class="btn" id="restart-btn" type="button" title="Start this proof again">Restart</button>
+            <button class="btn more-btn" id="more-btn" type="button" aria-expanded="false" aria-controls="tool-more">More<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
+          </div>
+          <div class="tool-more" id="tool-more">
+            <div class="tool-group">
+              <label class="rules-select">
+                <span>Rule set</span>
+                <select id="game-select"></select>
+              </label>
+              <label class="switch" title="Show the possible moves after every step">
+                <input type="checkbox" id="guided-toggle">
+                <span>Guided</span>
+              </label>
+            </div>
+            <div class="tool-group">
+              <details class="menu" id="export-menu">
+                <summary class="btn">Share and export</summary>
+                <div class="menu-list" role="menu">
+                  <button type="button" role="menuitem" id="copy-link">Copy link to this problem</button>
+                  <button type="button" role="menuitem" id="copy-text">Copy as text</button>
+                  <button type="button" role="menuitem" id="copy-latex">Copy LaTeX (TikZ)</button>
+                  <button type="button" role="menuitem" id="download-svg">Download SVG</button>
+                  <button type="button" role="menuitem" id="check-menu">Check a proof…</button>
+                </div>
+              </details>
+              <div class="size-btns" role="group" aria-label="Text size">
+                <button class="btn small" id="smaller-btn" type="button" aria-label="Smaller text">A−</button>
+                <button class="btn small" id="bigger-btn" type="button" aria-label="Larger text">A+</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div class="work">
+        <section class="card proof-card" id="proof-panel" aria-labelledby="proof-heading" tabindex="-1">
+          <div class="card-head">
+            <h2 id="proof-heading">Proof</h2>
+            <p class="selection-info" id="selection-info" aria-live="polite"></p>
+          </div>
+          <div class="proof-scroll" id="proof-scroll"></div>
+          <div class="complete-banner" id="complete-banner" hidden></div>
+        </section>
+
+        <section class="card guide-card" id="guide-panel" aria-labelledby="guide-heading">
+          <div class="card-head">
+            <h2 id="guide-heading">Guide</h2>
+          </div>
+          <div class="guide-actions">
+            <button class="btn" id="hint-btn" type="button" title="Hint (H)">Hint</button>
+            <button class="btn" id="next-btn" type="button" title="Moves (M): list the possible moves for the goal, with ✓ or ✗">Moves</button>
+            <button class="btn" id="show-btn" type="button" title="Show me (S): build the proof one step at a time">Show me</button>
+            <button class="btn" id="solve-btn" type="button" title="Let the prover fill in the rest of the proof">Solve</button>
+          </div>
+          <div class="guide-body" id="guide-body" aria-live="polite"></div>
+        </section>
+
+        <section class="card rules-card" id="rules-card" aria-labelledby="rules-heading">
+          <div class="card-head">
+            <h2 id="rules-heading">Rules</h2>
+            <p class="muted small" id="rules-note"></p>
+          </div>
+          <div class="rule-groups" id="rule-panel"></div>
+          <div class="chooser" id="chooser" hidden></div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <div class="tray" id="tray" role="toolbar" aria-label="Quick actions"></div>
+  <div class="tip" id="tip" role="status" hidden></div>
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+  <div class="sr-only" id="sr-status" aria-live="polite"></div>
+
+  <dialog class="dialog" id="help-dialog" aria-labelledby="help-title">
+    <div class="dialog-head">
+      <h2 id="help-title">Help</h2>
+      <button class="icon-btn" type="button" data-close aria-label="Close help"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+    </div>
+    <div class="dialog-body" id="help-body"></div>
+  </dialog>
+
+  <dialog class="dialog" id="check-dialog" aria-labelledby="check-title">
+    <div class="dialog-head">
+      <h2 id="check-title">Check a proof</h2>
+      <button class="icon-btn" type="button" data-close aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+    </div>
+    <div class="dialog-body">
+      <p>Paste a proof as text: one numbered line each, with <code>│</code> or <code>|</code> marks for the boxes and the justification at the end, as produced by <em>Copy as text</em>. The first line may give the sequent; otherwise the current problem is used.</p>
+      <label for="check-input" class="sr-only">Proof text</label>
+      <textarea id="check-input" rows="12" spellcheck="false" placeholder="⊢ A → (B → A)&#10;1 | A            assumption&#10;2 | | B          assumption&#10;3 | | A          line 1&#10;4 | B → A        → intro 2–3&#10;5 A → (B → A)    → intro 1–4"></textarea>
+      <div class="dialog-actions">
+        <button class="btn primary" id="check-run" type="button">Check</button>
+        <button class="btn" id="check-current" type="button">Use the current proof</button>
+        <button class="btn" id="check-open" type="button" hidden>Open in the editor</button>
+      </div>
+      <div id="check-result" aria-live="polite"></div>
+    </div>
+  </dialog>
+
+  <dialog class="dialog" id="copy-dialog" aria-labelledby="copy-title">
+    <div class="dialog-head">
+      <h2 id="copy-title">Copy</h2>
+      <button class="icon-btn" type="button" data-close aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+    </div>
+    <div class="dialog-body">
+      <p>Copying was blocked by the browser. Select the text below and copy it.</p>
+      <label for="copy-area" class="sr-only">Text to copy</label>
+      <textarea id="copy-area" rows="12" readonly spellcheck="false"></textarea>
+    </div>
+  </dialog>
+
+  <noscript><p class="noscript">This app needs JavaScript.</p></noscript>
+</body>
+</html>
