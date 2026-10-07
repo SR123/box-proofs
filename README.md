@@ -2,6 +2,8 @@
 
 A web app for building and checking Fitch-style box proofs in propositional logic, written for ECS407U Logic and Discrete Structures at Queen Mary University of London.
 
+**Use it online: <https://sr123.github.io/box-proofs/>**
+
 Students build natural deduction proofs as nested boxes, in the same layout and with the same justifications as the lecture slides and Jape. The app explains the strategy as it goes: it says which moves still lead to a proof and which are dead ends, gives hints in three levels, and can build a whole proof one step at a time.
 
 It is a static site: plain HTML, CSS and JavaScript modules. There is no build step, nothing to install, and it makes no network requests while running (no CDN, no analytics, no cookies). `localStorage` is only used for conveniences: the ✓ marks of solved exercises, a typed sequent, the Guided setting, Present mode, the text size and the colour theme.
@@ -115,11 +117,11 @@ The address of the page describes the problem, so links from a module page open 
 | `embed` | compact layout for an iframe | `?ex=imp-2&embed=1` |
 | `fresh` | `1` opens the start page and clears the ✓ marks (for a clean demo) | `?fresh=1` |
 
-For example, with the site at `https://<user>.github.io/<repo>/`:
+For example:
 
-- `https://<user>.github.io/<repo>/?ex=imp-2` opens "One box, one copy" (⊢ A → (B → A)).
-- `https://<user>.github.io/<repo>/?s=A%E2%86%92B%2C%20%C2%ACB%20%E2%8A%A2%20%C2%ACA&mode=guided` opens A → B, ¬B ⊢ ¬A in guided mode.
-- `https://<user>.github.io/<repo>/?s=p%20-%3E%20q%2C%20~q%20%7C-%20~p` uses ASCII.
+- `https://sr123.github.io/box-proofs/?ex=imp-2` opens "One box, one copy" (⊢ A → (B → A)).
+- `https://sr123.github.io/box-proofs/?s=A%E2%86%92B%2C%20%C2%ACB%20%E2%8A%A2%20%C2%ACA&mode=guided` opens A → B, ¬B ⊢ ¬A in guided mode.
+- `https://sr123.github.io/box-proofs/?s=p%20-%3E%20q%2C%20~q%20%7C-%20~p` uses ASCII.
 
 The **Copy link** item under *Share and export* produces such a link for the current problem: for an exercise just `?ex=…` (plus `game=` if the rule set was changed), otherwise `?s=…`. A link to an unknown exercise id opens the first exercise and says so. Unencoded links such as `?s=A&B|-B&A` also work, but encoding `&` as `%26` is safer.
 
@@ -128,7 +130,7 @@ Exercise ids: `and-1` … `and-7`, `imp-1` … `imp-7`, `both-1` … `both-5`, `
 ## Embedding with an iframe
 
 ```html
-<iframe src="https://<user>.github.io/<repo>/?ex=or-4&embed=1"
+<iframe src="https://sr123.github.io/box-proofs/?ex=or-4&embed=1"
         title="Box proof: proof by cases"
         width="100%" height="760" style="border: 0"></iframe>
 ```
@@ -139,7 +141,7 @@ Exercise ids: `and-1` … `and-7`, `imp-1` … `imp-7`, `both-1` … `both-5`, `
 
 1. Create a repository and push the contents of this folder to its `main` branch (the folder with `index.html` at its top).
 2. On GitHub: **Settings → Pages → Build and deployment → Source: Deploy from a branch → Branch: `main`, folder: `/ (root)`** → Save.
-3. After a minute the site is at `https://<user>.github.io/<repo>/`.
+3. After a minute the site is at `https://<user>.github.io/<repo>/` (this one is at <https://sr123.github.io/box-proofs/>).
 
 The `.nojekyll` file tells GitHub Pages to serve the files as they are.
 
